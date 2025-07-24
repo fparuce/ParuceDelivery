@@ -1,0 +1,686 @@
+openapi: 3.0.4
+info:
+  title: Algadelivery Delivery Tracking and Courier Management API
+  description: API para rastreamento e gerenciamento de entregas e gestão de entregadores do sistema Algadelivery.
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+  - url: http://localhost:8081
+tags:
+  - name: Couriers
+  - name: Deliveries
+paths:
+  /api/v1/deliveries:
+    post:
+      tags:
+        - Deliveries
+      summary: Cria um rascunho de uma nova encomenda.
+      operationId: draftDelivery
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryInput'
+      responses:
+        '200':
+          description: Rascunho da encomenda criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '400':
+          description: Requisição inválida (erros de validação).
+    get:
+      tags:
+        - Deliveries
+      summary: Lista todas as entregas com paginação.
+      operationId: findAllDeliveries
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            format: int32
+            default: 0
+          description: Número da página (baseado em zero).
+        - in: query
+          name: size
+          schema:
+            type: integer
+            format: int32
+            default: 20
+          description: Número de elementos por página.
+      responses:
+        '200':
+          description: Lista de entregas paginada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelDelivery'
+  /api/v1/deliveries/{deliveryId}:
+    put:
+      tags:
+        - Deliveries
+      summary: Edita os detalhes de uma encomenda existente.
+      operationId: editDelivery
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID da encomenda a ser editada.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeliveryInput'
+      responses:
+        '200':
+          description: encomenda editada com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '400':
+          description: Requisição inválida (erros de validação ou encomenda não editável).
+        '404':
+          description: encomenda não encontrada.
+    get:
+      tags:
+        - Deliveries
+      summary: Busca uma encomenda pelo ID.
+      operationId: findDeliveryById
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID da encomenda a ser buscada.
+      responses:
+        '200':
+          description: encomenda encontrada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Delivery'
+        '404':
+          description: encomenda não encontrada.
+  /api/v1/deliveries/{deliveryId}/placement:
+    post:
+      tags:
+        - Deliveries
+      summary: Submete uma encomenda para processamento.
+      operationId: placeDelivery
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID da encomenda a ser submetida.
+      responses:
+        '204':
+          description: encomenda submetida com sucesso.
+        '400':
+          description: Requisição inválida
+        '404':
+          description: encomenda não encontrada.
+  /api/v1/deliveries/{deliveryId}/pickups:
+    post:
+      tags:
+        - Deliveries
+      summary: Registra a retirada de uma encomenda pelo entregador.
+      operationId: pickupDelivery
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID da encomenda a ser marcada como retirada.
+      responses:
+        '204':
+          description: encomenda marcada como retirada com sucesso.
+        '400':
+          description: Requisição inválida
+        '404':
+          description: encomenda não encontrada.
+  /api/v1/deliveries/{deliveryId}/completion:
+    post:
+      tags:
+        - Deliveries
+      summary: Registra a conclusão (entrega) de uma encomenda.
+      operationId: completeDelivery
+      parameters:
+        - in: path
+          name: deliveryId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID da encomenda a ser marcada como concluída.
+      responses:
+        '204':
+          description: encomenda marcada como concluída com sucesso.
+        '400':
+          description: Requisição inválida
+        '404':
+          description: encomenda não encontrada.
+  /api/v1/couriers:
+    post:
+      tags:
+        - Couriers
+      summary: Cria um novo entregador.
+      operationId: createCourier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourierInput'
+      responses:
+        '201':
+          description: Entregador criado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Courier'
+        '400':
+          description: Requisição inválida (erros de validação).
+    get:
+      tags:
+        - Couriers
+      summary: Lista todos os entregadores com paginação.
+      operationId: findAllCouriers
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            format: int32
+            default: 0
+          description: Número da página (baseado em zero).
+        - in: query
+          name: size
+          schema:
+            type: integer
+            format: int32
+            default: 20
+          description: Número de elementos por página.
+      responses:
+        '200':
+          description: Lista de entregadores paginada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PagedModelCourier'
+  /api/v1/couriers/{courierId}:
+    get:
+      tags:
+        - Couriers
+      summary: Busca um entregador pelo ID.
+      operationId: findCourierById
+      parameters:
+        - in: path
+          name: courierId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID do entregador a ser buscado.
+      responses:
+        '200':
+          description: Entregador encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Courier'
+        '404':
+          description: Entregador não encontrado.
+    put:
+      tags:
+        - Couriers
+      summary: Atualiza os dados de um entregador existente.
+      operationId: updateCourier
+      parameters:
+        - in: path
+          name: courierId
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: ID do entregador a ser atualizado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourierInput'
+      responses:
+        '204':
+          description: Entregador atualizado com sucesso (No Content).
+        '400':
+          description: Requisição inválida (erros de validação).
+        '404':
+          description: Entregador não encontrado.
+  /api/v1/couriers/payout-calculation:
+    post:
+      tags:
+        - Couriers
+      summary: Calcula o valor de pagamento para um entregador com base na distância.
+      operationId: calculateCourierPayout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CourierPayoutCalculateRequest'
+      responses:
+        '200':
+          description: Cálculo de pagamento realizado com sucesso.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CourierPayoutModel'
+        '400':
+          description: Requisição inválida
+
+components:
+  schemas:
+    DeliveryInput:
+      type: object
+      required:
+        - sender
+        - recipient
+        - items
+      properties:
+        sender:
+          $ref: '#/components/schemas/ContactPointInput'
+        recipient:
+          $ref: '#/components/schemas/ContactPointInput'
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ItemInput'
+    ContactPointInput:
+      type: object
+      required:
+        - zipCode
+        - street
+        - number
+        - name
+        - phone
+      properties:
+        zipCode:
+          type: string
+          description: Código postal do ponto de contato.
+          example: "01001-000"
+        street:
+          type: string
+          description: Nome da rua.
+          example: "Rua da Consolação"
+        number:
+          type: string
+          description: Número do endereço.
+          example: "123"
+        complement:
+          type: string
+          nullable: true
+          description: Complemento do endereço.
+          example: "Apto 10"
+        name:
+          type: string
+          description: Nome do contato.
+          example: "João Silva"
+        phone:
+          type: string
+          description: Telefone do contato.
+          example: "11999998888"
+    ItemInput:
+      type: object
+      required:
+        - name
+        - quantity
+      properties:
+        name:
+          type: string
+          description: Nome do item.
+          example: "Livro de Java"
+        quantity:
+          type: integer
+          format: int32
+          minimum: 1
+          description: Quantidade do item.
+          example: 2
+    CourierIdInput:
+      type: object
+      required:
+        - courierId
+      properties:
+        courierId:
+          type: string
+          format: uuid
+          description: ID do entregador.
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+    Delivery:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID único da encomenda.
+          readOnly: true
+          example: "f0e1d2c3-b4a5-6789-0123-456789abcdef"
+        status:
+          $ref: '#/components/schemas/DeliveryStatus'
+          description: Status atual da encomenda.
+        courierId:
+          type: string
+          format: uuid
+          nullable: true
+          description: ID do entregador atribuído à encomenda.
+          example: "a1b2c3d4-e5f6-7890-1234-567890abcdef"
+        placedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data e hora em que a encomenda foi iniciada.
+        assignedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data e hora em que a encomenda foi atribuída a um entregador.
+        expectedDeliveryAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data e hora estimada para a encomenda.
+        fulfilledAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data e hora em que a encomenda foi concluída.
+        distanceFee:
+          type: number
+          format: float
+          description: Taxa de distância da encomenda.
+          example: 15.50
+        courierPayout:
+          type: number
+          format: float
+          description: Pagamento ao entregador.
+          example: 10.00
+        totalCost:
+          type: number
+          format: float
+          description: Custo total da encomenda.
+          example: 25.50
+        totalItems:
+          type: integer
+          format: int32
+          description: Número total de itens na encomenda.
+          example: 3
+        sender:
+          $ref: '#/components/schemas/ContactPoint'
+        recipient:
+          $ref: '#/components/schemas/ContactPoint'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Item'
+    ContactPoint:
+      type: object
+      properties:
+        zipCode:
+          type: string
+          description: Código postal do ponto de contato.
+          example: "01001-000"
+        street:
+          type: string
+          description: Nome da rua.
+          example: "Rua da Consolação"
+        number:
+          type: string
+          description: Número do endereço.
+          example: "123"
+        complement:
+          type: string
+          nullable: true
+          description: Complemento do endereço.
+          example: "Apto 10"
+        name:
+          type: string
+          description: Nome do contato.
+          example: "João Silva"
+        phone:
+          type: string
+          description: Telefone do contato.
+          example: "11999998888"
+    Item:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID único do item.
+          readOnly: true
+          example: "c1d2e3f4-a5b6-7890-1234-567890abcdef"
+        name:
+          type: string
+          description: Nome do item.
+          example: "Teclado Mecânico"
+        quantity:
+          type: integer
+          format: int32
+          description: Quantidade do item.
+          example: 1
+    DeliveryStatus:
+      type: string
+      enum:
+        - DRAFT
+        - WAITING_FOR_ASSIGNMENT
+        - WAITING_FOR_COURIER
+        - IN_TRANSIT_TO_RECIPIENT
+        - DELIVERED
+      description: Status possíveis de uma encomenda.
+    PagedModelDelivery:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Delivery'
+        pageable:
+          type: object
+          properties:
+            pageNumber:
+              type: integer
+            pageSize:
+              type: integer
+            offset:
+              type: integer
+            paged:
+              type: boolean
+            unpaged:
+              type: boolean
+            sort:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+        last:
+          type: boolean
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        sort:
+          type: object
+          properties:
+            empty:
+              type: boolean
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+        first:
+          type: boolean
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
+    CourierInput:
+      type: object
+      required:
+        - name
+        - phone
+      properties:
+        name:
+          type: string
+          description: Nome do entregador.
+          example: "Maria Entregadora"
+        phone:
+          type: string
+          description: Telefone do entregador.
+          example: "11987654321"
+    CourierPayoutCalculateRequest:
+      type: object
+      properties:
+        distanceInKm:
+          type: number
+          format: double
+          description: Distância em quilômetros para o cálculo do pagamento.
+          example: 10.5
+    CourierPayoutModel:
+      type: object
+      properties:
+        payoutFee:
+          type: number
+          format: float
+          description: Valor do pagamento calculado.
+          example: 25.00
+    Courier:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID único do entregador.
+          readOnly: true
+          example: "1a2b3c4d-5e6f-7890-abcd-ef1234567890"
+        name:
+          type: string
+          description: Nome do entregador.
+          example: "João Entregador"
+        phone:
+          type: string
+          description: Telefone do entregador.
+          example: "11998877665"
+        fulfilledDeliveriesQuantity:
+          type: integer
+          format: int32
+          description: Quantidade de entregas concluídas pelo entregador.
+          example: 50
+        pendingDeliveriesQuantity:
+          type: integer
+          format: int32
+          description: Quantidade de entregas pendentes atribuídas ao entregador.
+          example: 3
+        pendingDeliveries:
+          type: array
+          items:
+            $ref: '#/components/schemas/AssignedDelivery'
+          description: Lista de entregas pendentes atribuídas ao entregador.
+        lastFulfilledDeliveryAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Data e hora da última encomenda concluída pelo entregador.
+    AssignedDelivery:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: ID da encomenda atribuída (que é o deliveryId).
+          example: "f0e1d2c3-b4a5-6789-0123-456789abcdef"
+        assignedAt:
+          type: string
+          format: date-time
+          description: Data e hora em que a encomenda foi atribuída.
+        amountOwned:
+          type: number
+          format: float
+          description: Valor a ser pago ao entregador por esta encomenda.
+          example: 12.50
+    PagedModelCourier:
+      type: object
+      properties:
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/Courier'
+        pageable:
+          type: object
+          properties:
+            pageNumber:
+              type: integer
+            pageSize:
+              type: integer
+            offset:
+              type: integer
+            paged:
+              type: boolean
+            unpaged:
+              type: boolean
+            sort:
+              type: object
+              properties:
+                empty:
+                  type: boolean
+                sorted:
+                  type: boolean
+                unsorted:
+                  type: boolean
+        last:
+          type: boolean
+        totalPages:
+          type: integer
+        totalElements:
+          type: integer
+        size:
+          type: integer
+        number:
+          type: integer
+        sort:
+          type: object
+          properties:
+            empty:
+              type: boolean
+            sorted:
+              type: boolean
+            unsorted:
+              type: boolean
+        first:
+          type: boolean
+        numberOfElements:
+          type: integer
+        empty:
+          type: boolean
