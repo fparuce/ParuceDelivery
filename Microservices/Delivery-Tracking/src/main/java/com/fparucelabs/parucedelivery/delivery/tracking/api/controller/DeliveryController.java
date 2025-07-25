@@ -8,6 +8,7 @@ import com.fparucelabs.parucedelivery.delivery.tracking.domain.service.DeliveryC
 import com.fparucelabs.parucedelivery.delivery.tracking.domain.service.DeliveryPreparationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.data.web.PagedModel;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.Random;
 import java.util.UUID;
 
 import static org.springframework.http.HttpStatus.NOT_FOUND;
@@ -40,8 +42,14 @@ public class DeliveryController {
         return deliveryPreparationService.edit(deliveryId, deliveryInput);
     }
 
+    @SneakyThrows
     @GetMapping
     public PagedModel<Delivery> findAll(@PageableDefault Pageable pageable) {
+        if (Math.random() < 0.1 ) {
+            throw new RuntimeException();
+        }
+        int millis = new Random().nextInt(400);
+        Thread.sleep(millis);
         return new PagedModel<>(deliveryRepository.findAll(pageable));
     }
 
